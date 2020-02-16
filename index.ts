@@ -1,7 +1,6 @@
-import { SNS, config } from 'aws-sdk'
+import { SNS, config, DynamoDB } from 'aws-sdk'
 
 config.update({ region: 'eu-west-1' });
-
 
 test('Publish Sns topic', async () => {
 
@@ -11,7 +10,24 @@ test('Publish Sns topic', async () => {
   };
 
 
-  let sns = new SNS({ apiVersion: '2010-03-31' });
-  var response = await sns.publish(params).promise();
-  console.log(response);
+  let sns = new SNS();
+  await sns.publish(params).promise();
+
+  var dynamoParams = {
+    RequestItems: {
+      "Test": {
+        Keys: [
+          {
+            "Test": {
+              S: "Hello"
+            }
+          }],
+      }
+    }
+  };
+
+  let dynamo = new DynamoDB();
+  let response = await dynamo.batchGetItem(dynamoParams).promise();
+
+  console.log(response.Responses.Test);
 });
